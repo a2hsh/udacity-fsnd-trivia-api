@@ -1,7 +1,9 @@
 .vscode
+node_modules
 __pycache__
 venv
-
+*.code-workspace
+.env
 # OS generated files #
 ######################
 .DS_Store

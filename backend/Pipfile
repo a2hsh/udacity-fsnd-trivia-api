@@ -1,0 +1,26 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+aniso8601 = "*"
+click = "*"
+itsdangerous = "*"
+psycopg2-binary = "*"
+pytz = "*"
+six = "*"
+Flask = "*"
+Flask-Cors = "*"
+Flask-RESTful = "*"
+Flask-SQLAlchemy = "*"
+Jinja2 = "*"
+MarkupSafe = "*"
+SQLAlchemy = "*"
+Werkzeug = "*"
+python-dotenv = "*"
+
+[requires]
+python_version = "3.8"
