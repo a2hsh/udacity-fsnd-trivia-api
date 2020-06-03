@@ -1,45 +1,13 @@
-from flask import abort, request, jsonify
-from .models import db, Question, Category
+# routes.py
+# for rendering api routes
+from flaskr import db
+from flaskr.models import Question, Category
+from . import api1
+from flask import abort, request, jsonify, current_app
 import random
-from flask import current_app as app
 
 # Defining global variables.
 QUESTIONS_PER_PAGE = 10
-
-# custom error handling class
-# borrowed from the Flask Documentation
-# https://flask.palletsprojects.com/en/1.1.x/patterns/apierrors/
-
-
-class InvalidUsage(Exception):
-    status_code = 400
-
-    def __init__(self, message=None, status_code=None, payload=None, success=False):
-        Exception.__init__(self)
-        if status_code is not None:
-            self.status_code = status_code
-        self.message = message
-        if self.message is None:
-            # no message specified, falling back to defaults
-            if self.status_code == 400:
-                self.message = 'bad request'
-            elif self.status_code == 404:
-                self.message = 'resource not found'
-            elif self.status_code == 405:
-                self.message = 'method not allowed'
-            elif self.status_code == 422:
-                self.message = 'unprocessable'
-            elif self.status_code == 500:
-                self.message = 'internal server error'
-        self.payload = payload
-        self.success = success
-
-    def to_dict(self):
-        rv = dict(self.payload or ())
-        rv['success'] = self.success
-        rv['error'] = self.status_code
-        rv['message'] = self.message
-        return rv
 
 # pagination utility
 
@@ -55,7 +23,7 @@ def paginate_questions(request, selection):
     return current_questions
 
 
-@app.after_request
+@api1.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Headers',
                          'Content-Type,Authorization,true')
@@ -64,7 +32,7 @@ def after_request(response):
     return response
 
 
-@app.route('/categories')
+@api1.route('/categories')
 def get_categories():
     categories = Category.query.all()
     category_dict = {category.id: category.type for category in categories}
@@ -76,25 +44,13 @@ def get_categories():
     })
 
 
-@app.route('/questions', methods=['GET', 'POST'])
+@api1.route('/questions', methods=['GET', 'POST'])
 def questions():
-    if request.method == 'GET':
-        selection = Question.query.order_by(Question.id).all()
-        total_questions = len(selection)
-        current_questions = paginate_questions(request, selection)
-        categories = Category.query.all()
-        category_dict = {category.id: category.type for category in categories}
-        if len(current_questions) == 0:
-            abort(404)
-        return jsonify({
-            'success': True,
-            'questions': current_questions,
-            'total_questions': total_questions,
-            'categories': category_dict
-        })
-    elif request.method == 'POST':
+    if request.method == 'POST':
         body = request.get_json()
-        # if search term and question data are posted together, raise a bad request error
+        if not body:
+            abort(400)
+        # if search term and question data are posted together, abort with bad request error
         if (body.get('searchTerm') and (body.get('question') or body.get('answer') or body.get('difficulty') or body.get('category'))):
             abort(400)
         if body.get('searchTerm'):
@@ -137,9 +93,23 @@ def questions():
                 abort(422)
         else:
             abort(400)
+    else:
+        selection = Question.query.order_by(Question.id).all()
+        total_questions = len(selection)
+        current_questions = paginate_questions(request, selection)
+        categories = Category.query.all()
+        category_dict = {category.id: category.type for category in categories}
+        if len(current_questions) == 0:
+            abort(404)
+        return jsonify({
+            'success': True,
+            'questions': current_questions,
+            'total_questions': total_questions,
+            'categories': category_dict
+        })
 
 
-@ app.route('/questions/<question_id>', methods=['DELETE'])
+@api1.route('/questions/<question_id>', methods=['DELETE'])
 def delete_question(question_id):
     try:
         question = Question.query.filter(
@@ -156,7 +126,7 @@ def delete_question(question_id):
         abort(422)
 
 
-@app.route('/categories/<category_id>/questions')
+@api1.route('/categories/<category_id>/questions')
 def get_questions_by_category(category_id):
     category = Category.query.filter(Category.id == category_id).one_or_none()
     if category is None:
@@ -176,7 +146,7 @@ def get_questions_by_category(category_id):
     })
 
 
-@app.route('/quizzes', methods=['POST'])
+@api1.route('/quizzes', methods=['POST'])
 def play_quiz():
     try:
         body = request.get_json()
@@ -223,8 +193,8 @@ def play_quiz():
 # error handlers
 
 
-@app.errorhandler(400)
-def bad_request(e):
+@api1.errorhandler(400)
+def bad_request(error):
     return jsonify({
         'success': False,
         'error': 400,
@@ -232,8 +202,8 @@ def bad_request(e):
     }), 400
 
 
-@app.errorhandler(404)
-def not_found(e):
+@api1.errorhandler(404)
+def not_found(error):
     return jsonify({
         'success': False,
         'error': 404,
@@ -241,8 +211,8 @@ def not_found(e):
     }), 404
 
 
-@app.errorhandler(405)
-def not_allowed(e):
+@api1.errorhandler(405)
+def not_allowed(error):
     return jsonify({
         'success': False,
         'error': 405,
@@ -250,8 +220,8 @@ def not_allowed(e):
     }), 405
 
 
-@app.errorhandler(422)
-def unprocessable(e):
+@api1.errorhandler(422)
+def unprocessable(error):
     return jsonify({
         'success': False,
         'error': 422,
