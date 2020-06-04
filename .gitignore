@@ -1,6 +1,7 @@
 .vscode
 node_modules
 __pycache__
+.pytest_cache
 venv
 *.code-workspace
 .env
