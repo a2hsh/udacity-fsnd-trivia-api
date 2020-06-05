@@ -83,6 +83,9 @@ def questions():
             new_answer = body.get('answer')
             new_category = body.get('category')
             new_difficulty = body.get('difficulty')
+            # insure that difficulty is only from 1 to 5
+            if new_difficulty not in range(1, 6):
+                abort(400)
             try:
                 # insert the new question to the database
                 question = Question(new_question, new_answer,
