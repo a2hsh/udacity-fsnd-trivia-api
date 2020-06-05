@@ -6,23 +6,6 @@ from . import api1
 from flask import abort, request, jsonify, current_app
 import random
 
-# Defining global variables.
-QUESTIONS_PER_PAGE = 10
-
-# pagination utility
-
-
-def paginate_questions(request, selection):
-    page = request.args.get('page', 1, type=int)
-    start = (page - 1) * QUESTIONS_PER_PAGE
-    end = start + QUESTIONS_PER_PAGE
-
-    questions = [question.format() for question in selection]
-    current_questions = questions[start:end]
-
-    return current_questions
-
-
 
 @api1.after_request
 def after_request(response):
@@ -34,12 +17,13 @@ def after_request(response):
     response.headers.add('Content-Type', 'application/json')
     return response
 
+
 @api1.route('/categories')
 def get_categories():
     '''get all categories'''
     categories = Category.query.all()
     category_dict = {category.id: category.type for category in categories}
-    if len(category_dict) == 0: #no categories available, return a 404 error
+    if len(category_dict) == 0:  # no categories available, return a 404 error
         abort(404)
     return jsonify({
         'success': True,
@@ -47,88 +31,96 @@ def get_categories():
     })
 
 
-@api1.route('/questions', methods=['GET', 'POST'])
-def questions():
-    '''getting and posting questions, as well as searching emplementation'''
-    if request.method == 'POST':
-        # load the request body
-        body = request.get_json()
-        if not body: # empty request body should return a 400 error
-            abort(400)
-        # if search term and question data are posted together, abort with bad request error
-        if (body.get('searchTerm') and (body.get('question') or body.get('answer') or body.get('difficulty') or body.get('category'))):
-            abort(400)
-        if body.get('searchTerm'):
-            # searchTerm is available in the request body
-            search_term = body.get('searchTerm')
-            # query the database for the results
-            selection = Question.query.filter(
-                Question.question.ilike(f'%{search_term}%')).all()
-            total_questions = len(selection)
-            if total_questions == 0:
-                # no questions ara available in the search results
-                abort(404)
-            current_questions = paginate_questions(request, selection)
-            if len(current_questions) == 0:
-                # search results beyond a valid page should return a 404 error
-                abort(404)
-            return jsonify({
-                'success': True,
-                'questions': current_questions,
-                'total_questions': total_questions
-            })
-        elif (body.get('question') and body.get('answer') and body.get('difficulty') and body.get('category')):
-            # posted a new question
-            new_question = body.get('question')
-            new_answer = body.get('answer')
-            new_category = body.get('category')
-            new_difficulty = body.get('difficulty')
-            # insure that difficulty is only from 1 to 5
-            if new_difficulty not in range(1, 6):
-                abort(400)
-            try:
-                # insert the new question to the database
-                question = Question(new_question, new_answer,
-                                    new_category, new_difficulty)
-                question.insert()
-                # query the database for all questions
-                selection = Question.query.order_by(Question.id).all()
-                total_questions = len(selection)
-                current_questions = paginate_questions(request, selection)
-                if len(current_questions) == 0:
-                    # return a 404 error for envalid pages
-                    abort(404)
-                return jsonify({
-                    'success': True,
-                    'id': question.id,
-                    'question': question.question,
-                    'questions': current_questions,
-                    'total_questions': total_questions
-                })
-            except:
-                # creating the question failed, rollback and close the connection
-                db.session.rollback()
-                abort(422)
-        else:
-            # anything else posted in the body should return a 400 error
-            abort(400)
-    else:
-        # getting all questions
-        selection = Question.query.order_by(Question.id).all()
-        total_questions = len(selection)
-        current_questions = paginate_questions(request, selection)
-        # load all categories from db
-        categories = Category.query.all()
-        category_dict = {category.id: category.type for category in categories}
-        if len(current_questions) == 0:
-            # return a 404 error for envalid page number
+@api1.route('/questions')
+def get_questions():
+    '''gett all questions'''
+    # paginate questions, and store the current page questions in a list
+    page = request.args.get('page', 1, type=int)
+    selection = Question.query.order_by(Question.id).paginate(
+        page, current_app.config['QUESTIONS_PER_PAGE'], True)
+    total_questions = selection.total
+    if total_questions == 0:
+        # no questions are found, abort with a 404 error.
+        abort(404)
+    current_questions = [question.format() for question in selection.items]
+    # load all categories from db
+    categories = Category.query.all()
+    category_dict = {category.id: category.type for category in categories}
+    return jsonify({
+        'success': True,
+        'questions': current_questions,
+        'total_questions': total_questions,
+        'categories': category_dict
+    })
+
+
+@api1.route('/questions/search', methods=['POST'])
+def search_questions():
+    '''search for a question in the database'''
+    body = request.get_json()
+    if body.get('searchTerm'):
+        # searchTerm is available in the request body
+        search_term = body.get('searchTerm')
+        # query the database for paginated results, store the current page results in a list
+        page = request.args.get('page', 1, type=int)
+        selection = Question.query.filter(
+            Question.question.ilike(f'%{search_term}%')).paginate(page, current_app.config['QUESTIONS_PER_PAGE'], True)
+        total_questions = selection.total
+        if total_questions == 0:
+            # no questions are available in the search results
             abort(404)
+        current_questions = [question.format() for question in selection.items]
         return jsonify({
             'success': True,
             'questions': current_questions,
-            'total_questions': total_questions,
-            'categories': category_dict
+            'total_questions': total_questions
         })
+    else:
+        # if searchTerm was not posted, return a 400 error
+        abort(400)
+
+
+@api1.route('/questions', methods=['POST'])
+def post_new_question():
+    body = request.get_json()
+    if (body.get('question') and body.get('answer') and body.get('difficulty') and body.get('category')):
+        # posted a new question
+        new_question = body.get('question')
+        new_answer = body.get('answer')
+        new_category = body.get('category')
+        new_difficulty = body.get('difficulty')
+        # insure that difficulty is only from 1 to 5
+        if not 1 <= int(new_difficulty) < 6:
+            abort(400)
+        try:
+            # insert the new question to the database
+            question = Question(new_question, new_answer,
+                                new_category, new_difficulty)
+            question.insert()
+            # query the database for all questions
+            page = request.args.get('page', 1, type=int)
+            selection = Question.query.order_by(Question.id).paginate(
+                page, current_app.config['QUESTIONS_PER_PAGE'], True)
+            total_questions = selection.total
+            if total_questions == 0:
+                # no questions were found, return a 404 error.
+                abort(404)
+            current_questions = [question.format()
+                                 for question in selection.items]
+            return jsonify({
+                'success': True,
+                'id': question.id,
+                'question': question.question,
+                'questions': current_questions,
+                'total_questions': total_questions
+            })
+        except:
+            # creating the question failed, rollback and close the connection
+            db.session.rollback()
+            abort(422)
+    else:
+        # anything else posted in the body should return a 400 error
+        abort(400)
 
 
 @api1.route('/questions/<question_id>', methods=['DELETE'])
@@ -158,15 +150,16 @@ def get_questions_by_category(category_id):
     # abort with a 404 error if category is unavailable
     if category is None:
         abort(404)
-    selection = Question.query.filter(Question.category == category.id).order_by(Question.id).all()
-    total_questions = len(selection)
+    # paginate questions, and store the current page questions in a list
+    page = request.args.get('page', 1, type=int)
+    selection = Question.query.filter(
+        Question.category == category.id).order_by(Question.id).paginate(page, current_app.config['QUESTIONS_PER_PAGE'], True)
+    total_questions = selection.total
     if total_questions == 0:
         # if there are no questions for this category, return a 404 error
         abort(404)
-    current_questions = paginate_questions(request, selection)
-    if len(current_questions) == 0:
-        # return a 404 error for envalid page number
-        abort(404)
+    total_questions = selection.total
+    current_questions = [question.format() for question in selection.items]
     return jsonify({
         'success': True,
         'questions': current_questions,
@@ -196,7 +189,7 @@ def play_quiz():
     else:
         # load the questions from the specified category
         selection = Question.query.filter(
-        Question.category == category_id).all()
+            Question.category == category_id).all()
     if not selection:
         # if the category has no questions, return a 404 error
         abort(404)
@@ -206,8 +199,8 @@ def play_quiz():
         '''a function used to get a random question from the database'''
         # check if there are no questions left to be randomized before getting stuck in a while loop
         if len(previous_questions) == total_questions:
-                # All questions were played, let's get outa here
-                return None
+            # All questions were played, let's get outa here
+            return None
         while True:
             question = selection[random.randrange(0, len(selection), 1)]
             # Continue to randomize until finding a question that's not played before
@@ -268,3 +261,12 @@ def unprocessable(error):
         'error': 422,
         'message': 'unprocessable'
     }), 422
+
+
+@api1.errorhandler(500)
+def server_error(error):
+    return jsonify({
+        'success': False,
+        'error': 500,
+        'message': 'internal error'
+    }), 500

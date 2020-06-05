@@ -10,6 +10,7 @@ class Config:
     """Base config"""
     SECRET_KEY = environ.get('SECRET_KEY') or 'HackMePleaseLol'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    QUESTIONS_PER_PAGE = 10
 
 
 class ProdConfig(Config):
