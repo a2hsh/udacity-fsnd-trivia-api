@@ -4,6 +4,8 @@ from flaskr import db
 from flaskr.models import Question, Category
 from . import api1
 from flask import abort, request, jsonify, current_app
+from sqlalchemy import func
+
 import random
 
 
@@ -183,36 +185,21 @@ def play_quiz():
     category = body.get('quiz_category')
     # just incase, convert category id to integer
     category_id = int(category['id'])
+    # insure that there are questions to be played.
     if category_id == 0:
-        # if category id is 0, query the database for all questions
-        selection = Question.query.all()
+        # if category id is 0, query the database for a random object of all questions
+        selection = Question.query.order_by(func.random())
     else:
-        # load the questions from the specified category
+        # load a random object of questions from the specified category
         selection = Question.query.filter(
-            Question.category == category_id).all()
-    if not selection:
-        # if the category has no questions, return a 404 error
+            Question.category == category_id).order_by(func.random())
+    if selection is None:
+        # No questions available, abort with a 404 error
         abort(404)
-    total_questions = len(selection)
-
-    def get_random_question():
-        '''a function used to get a random question from the database'''
-        # check if there are no questions left to be randomized before getting stuck in a while loop
-        if len(previous_questions) == total_questions:
-            # All questions were played, let's get outa here
-            return None
-        while True:
-            question = selection[random.randrange(0, len(selection), 1)]
-            # Continue to randomize until finding a question that's not played before
-            if question.id in previous_questions:
-                continue
-            else:
-                # found a question, so break out of the while loop
-                break
-        return question
-
-    # get a random question
-    question = get_random_question()
+    else:
+        # load a random question from our previous query, which is not in the previous_questions list.
+        question = selection.filter(Question.id.notin_(
+            previous_questions)).first()
     if question is None:
         # all questions were played, returning a success message without a question signifies the end of the game
         return jsonify({
