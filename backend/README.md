@@ -20,8 +20,9 @@
     - [4.3.2. GET `/questions`](#432-get-questions)
     - [4.3.3. GET `/categories/<int:id>/questions`](#433-get-categoriesintidquestions)
     - [4.3.4. DELETE `/questions/<int:id>`](#434-delete-questionsintid)
-    - [4.3.5. POST `/questions`](#435-post-questions)
-    - [4.3.6. POST `/quizzes`](#436-post-quizzes)
+    - [4.3.5. POST `/questions/search`](#435-post-questionssearch)
+    - [4.3.6. POST `/questions`](#436-post-questions)
+    - [4.3.7. POST `/quizzes`](#437-post-quizzes)
 - [5. Testing](#5-testing)
 
 ## 1. Getting Started
@@ -70,7 +71,6 @@ This will install all of the required packages we selected within the `requireme
 
 - [Flask-CORS](https://flask-cors.readthedocs.io/en/latest/#) is the extension we'll use to handle cross origin requests from our frontend server. 
 
-- [pytest](https://pypi.org/project/pytest/) for testing the application
 
 ## 2. setting up
 
@@ -331,35 +331,19 @@ The following errors will be reported:
 }
 ```
 
-#### 4.3.5. POST `/questions`
-- posts a new question, or search for any questions.
+#### 4.3.5. POST `/questions/search`
+- search for a question.
 - Request Arguments:
   - Json object:
-    - If searching for a question:
-      - str:`searchTerm`: a string that contains the search term to search with.
-    - If posting a new question:
-      - str:`question`: A string that contains the question text.
-      - str:`answer`: A string that contains the answer text.
-      - int:`difficulty`: An integer that contains the difficulty, please note that `difficulty` can be from 1 to 5.
-      - int:`category: An integer that contains the category id.
-- Returns:
-  - if posting a `searchTerm`:
-    - `questions`: a list that contains paginated questions objects, durrived from the search term.
-        - int:`id`: Question id.
-        - str:`question`: Question text.
-        - int:`difficulty`: Question difficulty.
-        - int:`category`: question category id.
-    - int:`total_questions`: an integer that contains total questions returned from the search.
-  - if posting a new question:
-    - int:`id`: an integer that contains the ID for the created question.
-    - str:`question`: A string that contains the text for the created question.
-    - `questions`: a list that contains paginated questions objects, durrived from the search term.
-        - int:`id`: Question id.
-        - str:`question`: Question text.
-        - int:`difficulty`: Question difficulty.
-        - int:`category`: question category id.
-    - int:`total_questions`: an integer that contains total questions.
-example for posting a `searchTerm`: `curl -X POST http://localhost:5000/api/v1/questions -d '{"searchTerm": "title"}'`
+    - str:`searchTerm`: a string that contains the search term to search with.
+- returns: an object with the following:
+  - `questions`: a list that contains paginated questions objects, durrived from the search term.
+      - int:`id`: Question id.
+      - str:`question`: Question text.
+      - int:`difficulty`: Question difficulty.
+      - int:`category`: question category id.
+  - int:`total_questions`: an integer that contains total questions returned from the search.
+- example: `curl -X POST http://localhost:5000/api/v1/questions -d '{"searchTerm": "title"}'`
 ```
 {
     "questions": [
@@ -382,7 +366,48 @@ example for posting a `searchTerm`: `curl -X POST http://localhost:5000/api/v1/q
     "total_questions": 2
 }
 ```
-example for posting a new question: `curl -X POST http://localhost:5000/api/v1/questions -d '{ "question": "What is the application used to build great python backends?", "answer": "Flask", "difficulty": 2, "category": 1}'`
+
+#### 4.3.6. POST `/questions`
+- posts a new question.
+- Request Arguments:
+  - Json object:
+    - str:`question`: A string that contains the question text.
+    - str:`answer`: A string that contains the answer text.
+    - int:`difficulty`: An integer that contains the difficulty, please note that `difficulty` can be from 1 to 5.
+    - int:`category: An integer that contains the category id.
+- Returns: an object with the following keys:
+  - int:`id`: an integer that contains the ID for the created question.
+  - str:`question`: A string that contains the text for the created question.
+  - `questions`: a list that contains paginated questions objects.
+      - int:`id`: Question id.
+      - str:`question`: Question text.
+      - int:`difficulty`: Question difficulty.
+      - int:`category`: question category id.
+  - int:`total_questions`: an integer that contains total questions.
+- example: `curl -X POST http://localhost:5000/api/v1/questions -d '{ "question": "What is the application used to build great python backends?", "answer": "Flask", "difficulty": 2, "category": 1}'`
+```
+{
+    "questions": [
+        {
+            "answer": "Maya Angelou", 
+            "category": 4, 
+            "difficulty": 2, 
+            "id": 5, 
+            "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+        }, 
+        {
+            "answer": "Edward Scissorhands", 
+            "category": 5,
+            "difficulty": 3,
+            "id": 6,
+            "question": "What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?"
+        }
+    ], 
+    "success": true, 
+    "total_questions": 2
+}
+```
+- example: `curl -X POST http://localhost:5000/api/v1/questions -d '{ "question": "What is the application used to build great python backends?", "answer": "Flask", "difficulty": 2, "category": 1}'`
 ```
 {
     "id": 42, 
@@ -464,7 +489,7 @@ example for posting a new question: `curl -X POST http://localhost:5000/api/v1/q
 }
 ```
 
-#### 4.3.6. POST `/quizzes`
+#### 4.3.7. POST `/quizzes`
 - allows the user to play the quiz game, returning a random question that is not in the previous_questions list.
 - Request Arguments:
   - Json object:
@@ -501,7 +526,7 @@ Sample return:
 
 ## 5. Testing
 
-The app uses `pytest` for testing all functionalities. Create a testing database, and store the URI in the `TEST_DATABASE_URI` environment.
+The app uses `unittest` for testing all functionalities. Create a testing database, and store the URI in the `TEST_DATABASE_URI` environment.
 To run the tests, run
 ```
 bash
@@ -511,5 +536,5 @@ createdb trivia_test
 # restore the trivia dump file to the testing database
 psql trivia_test < trivia.psql
 # finally, from the `backend` directory, run
-pytest
+python test_flaskr.py
 ```
