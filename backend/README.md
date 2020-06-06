@@ -127,7 +127,7 @@ python wsgi.py
 ### 4.1. General
 - Base URL: this app is hosted locally under the port 5000. The API base URL is `http://localhost:5000/api/v1`
 - Authentication: this app doesn't require any authentication or API tokens.
-- for your convenience, The API adds `Content-Type: application/json` to the request headers.
+- You must set the header: `Content-Type: application/json` with every request.
 
 ### 4.2. error Handlers
 
@@ -154,7 +154,7 @@ The following errors will be reported:
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category.
 - Request Arguments: None
 - Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs.
-- example: `curl http://localhost:5000/api/v1/categories`
+- example: `curl http://localhost:5000/api/v1/categories -H "Content-Type: application/json"`
 ```
 {'1' : "Science",
 '2' : "Art",
@@ -178,7 +178,7 @@ The following errors will be reported:
         - int:`category`: question category id.
     - `categories`: a dictionary that contains objects of id: category_string key:value pairs.
     - int:`total_questions`: an integer that contains total questions
-- example: `curl http://localhost:5000/api/v1/categories`
+- example: `curl http://localhost:5000/api/v1/categories -H "Content-Type: application/json"`
 ```
 {
   "categories": {
@@ -280,7 +280,7 @@ The following errors will be reported:
         - int:`difficulty`: Question difficulty.
         - int:`category`: question category id.
     - int:`total_questions`: an integer that contains total questions in the selected category.
-- example: `curl http://localhost:5000/api/v1/categories/1/questions`
+- example: `curl http://localhost:5000/api/v1/categories/1/questions -H "Content-Type: application/json"`
 ```
 {
   "current_category": "Science", 
@@ -323,7 +323,7 @@ The following errors will be reported:
 - Deletes the question by the id specified in the URL parameters.
 - Request Arguments: None
 - Returns: A dictionary that contain deleted: question_id key:value pair.
-- example: `curl -X DELETE http://localhost:5000/api/v1/questions/20`
+- example: `curl -X DELETE http://localhost:5000/api/v1/questions/20 -H "Content-Type: application/json"`
 ```
 {
     "deleted": 20, 
@@ -343,7 +343,7 @@ The following errors will be reported:
       - int:`difficulty`: Question difficulty.
       - int:`category`: question category id.
   - int:`total_questions`: an integer that contains total questions returned from the search.
-- example: `curl -X POST http://localhost:5000/api/v1/questions -d '{"searchTerm": "title"}'`
+- example: `curl -X POST http://localhost:5000/api/v1/questions -H "Content-Type: application/json" -d '{"searchTerm": "title"}'`
 ```
 {
     "questions": [
@@ -384,7 +384,7 @@ The following errors will be reported:
       - int:`difficulty`: Question difficulty.
       - int:`category`: question category id.
   - int:`total_questions`: an integer that contains total questions.
-- example: `curl -X POST http://localhost:5000/api/v1/questions -d '{ "question": "What is the application used to build great python backends?", "answer": "Flask", "difficulty": 2, "category": 1}'`
+- example: `curl -X POST http://localhost:5000/api/v1/questions -H "Content-Type: application/json" -d '{ "question": "What is the application used to build great python backends?", "answer": "Flask", "difficulty": 2, "category": 1}'`
 ```
 {
     "questions": [
@@ -407,7 +407,7 @@ The following errors will be reported:
     "total_questions": 2
 }
 ```
-- example: `curl -X POST http://localhost:5000/api/v1/questions -d '{ "question": "What is the application used to build great python backends?", "answer": "Flask", "difficulty": 2, "category": 1}'`
+- example: `curl -X POST http://localhost:5000/api/v1/questions -H "Content-Type: application/json" -d '{ "question": "What is the application used to build great python backends?", "answer": "Flask", "difficulty": 2, "category": 1}'`
 ```
 {
     "id": 42, 
@@ -507,9 +507,9 @@ The following errors will be reported:
       - int:`category: An integer that contains the category ID.
 - Examples:
   - request a random question with previous questions and the category "science":  
-  `curl -X POST http://localhost:5000/api/v1/quizzes -d '{"previous_questions": [21], "quiz_category": {"type": "Science", "id": 1}}'`
+  `curl -X POST http://localhost:5000/api/v1/quizzes -H "Content-Type: application/json" -d '{"previous_questions": [21], "quiz_category": {"type": "Science", "id": 1}}'`
   - request with no previous questions, for a random question from all categories:  
-  `curl -X POST http://localhost:5000/api/v1/quizzes -d '{"previous_questions": [], "quiz_category": {"id": 0}}'`
+  `curl -X POST http://localhost:5000/api/v1/quizzes -H "Content-Type: application/json" -d '{"previous_questions": [], "quiz_category": {"id": 0}}'`
 Sample return:
 ```
 {
