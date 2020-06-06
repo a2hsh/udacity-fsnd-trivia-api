@@ -60,6 +60,9 @@ def get_questions():
 def search_questions():
     '''search for a question in the database'''
     body = request.get_json()
+    if not body:
+        # posting an envalid json should return a 400 error.
+        abort(400)
     if body.get('searchTerm'):
         # searchTerm is available in the request body
         search_term = body.get('searchTerm')
@@ -85,6 +88,9 @@ def search_questions():
 @api1.route('/questions', methods=['POST'])
 def post_new_question():
     body = request.get_json()
+    if not body:
+        # posting an envalid json should return a 400 error.
+        abort(400)
     if (body.get('question') and body.get('answer') and body.get('difficulty') and body.get('category')):
         # posted a new question
         new_question = body.get('question')
@@ -175,6 +181,9 @@ def play_quiz():
     '''play quiz game'''
     # load the request body
     body = request.get_json()
+    if not body:
+        # posting an envalid json should return a 400 error.
+        abort(400)
     if (body.get('previous_questions') is None or body.get('quiz_category') is None):
         # if previous_questions or quiz_category are missing, return a 400 error
         abort(400)
@@ -193,7 +202,7 @@ def play_quiz():
         # load a random object of questions from the specified category
         selection = Question.query.filter(
             Question.category == category_id).order_by(func.random())
-    if selection is None:
+    if not selection.all():
         # No questions available, abort with a 404 error
         abort(404)
     else:
