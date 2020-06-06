@@ -27,9 +27,7 @@
 
 ## 1. Getting Started
 
-
 ### 1.1. Installing Dependencies
-
 
 
 #### 1.1.1. Python 3.8
@@ -37,12 +35,10 @@
 Follow instructions to install the latest version of python for your platform in the [python docs](https://docs.python.org/3/using/unix.html#getting-and-installing-the-latest-version-of-python)
 
 
-
 #### 1.1.2. Virtual Environment
 
 We recommend working within a virtual environment whenever using Python for projects. This keeps your dependencies for each project separate and organized. Instructions for setting up a virtual environment for your platform can be found in the [python docs](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
 also, checkout [pipenv](https://pypi.org/project/pipenv/), as it's a great package to manage virtual environments.
-
 
 
 #### 1.1.3. PIP Dependencies
@@ -59,8 +55,7 @@ bash
 pipenv install -r requirements.txt
 ```
 
-This will install all of the required packages we selected within the `requirements.txt` file.
-
+This will install all the required packages we selected within the `requirements.txt` file.
 
 
 #### 1.1.4. Project Key Dependencies
@@ -70,7 +65,6 @@ This will install all of the required packages we selected within the `requireme
 - [SQLAlchemy](https://www.sqlalchemy.org/) is the Python SQL toolkit and ORM we'll use handle the lightweight sqlite database. You'll primarily work in app.py and can reference models.py. 
 
 - [Flask-CORS](https://flask-cors.readthedocs.io/en/latest/#) is the extension we'll use to handle cross origin requests from our frontend server. 
-
 
 ## 2. setting up
 
@@ -90,7 +84,7 @@ E.G: `FLASK_CONFIG = 'development'`
     - `testing`: Same as development, but with `testing` set to `True`. This helps in automated testing.
     - `production`: Start the app in the production environment, with `FLASK_ENV` set to `production`, and `debug` and `testing` set to `False`.
 - `SECRET_KEY`: Set your secret_key which is your data's encryption key. This key should be random. Ideally, you shouldn't even know what it is.  
-E.g: `SECRET_KEY = 'asogfkbir159hjrigjsq109487glrk54b2j5a'  
+E.g.: `SECRET_KEY = 'asogfkbir159hjrigjsq109487glrk54b2j5a'  
 If not set, `SECRET_KEY` will fall back to the string `HackMePleaseLol`.
 - `PROD_DATABASE_URI`, `DEV_DATABASE_URI`, and `TEST_DATABASE_URI`: Set the database uri for SQLAlchemy for the different configuration classes  
 ```
@@ -101,7 +95,6 @@ DEV_DATABASE_URI = 'postgresql://postgres:postgres@localhost:5432/trivia_dev'
 # testing DB URI
 TEST_DATABASE_URI = 'postgresql://postgres:postgres@localhost:5432/trivia_test'
 ```
-
 
 ### 2.2. Database Setup
 With Postgres running and our trivia database created, restore a database using the trivia.psql file provided. From the backend folder in terminal run:
@@ -153,7 +146,7 @@ The following errors will be reported:
 #### 4.3.1. GET `/categories`
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category.
 - Request Arguments: None
-- Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs.
+- Returns: An object with a single key, categories, that contains an object of id: category_string key:value pairs.
 - example: `curl http://localhost:5000/api/v1/categories -H "Content-Type: application/json"`
 ```
 {'1' : "Science",
@@ -387,29 +380,6 @@ The following errors will be reported:
 - example: `curl -X POST http://localhost:5000/api/v1/questions -H "Content-Type: application/json" -d '{ "question": "What is the application used to build great python backends?", "answer": "Flask", "difficulty": 2, "category": 1}'`
 ```
 {
-    "questions": [
-        {
-            "answer": "Maya Angelou", 
-            "category": 4, 
-            "difficulty": 2, 
-            "id": 5, 
-            "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
-        }, 
-        {
-            "answer": "Edward Scissorhands", 
-            "category": 5,
-            "difficulty": 3,
-            "id": 6,
-            "question": "What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?"
-        }
-    ], 
-    "success": true, 
-    "total_questions": 2
-}
-```
-- example: `curl -X POST http://localhost:5000/api/v1/questions -H "Content-Type: application/json" -d '{ "question": "What is the application used to build great python backends?", "answer": "Flask", "difficulty": 2, "category": 1}'`
-```
-{
     "id": 42, 
     "question": "What is the application used to build great python backends?", 
     "questions": [
@@ -526,7 +496,7 @@ Sample return:
 
 ## 5. Testing
 
-The app uses `unittest` for testing all functionalities. Create a testing database, and store the URI in the `TEST_DATABASE_URI` environment.
+The app uses `unittest` for testing all functionalities. Create a testing database and store the URI in the `TEST_DATABASE_URI` environment.
 To run the tests, run
 ```
 bash
@@ -538,3 +508,4 @@ psql trivia_test < trivia.psql
 # finally, from the `backend` directory, run
 python test_flaskr.py
 ```
+
